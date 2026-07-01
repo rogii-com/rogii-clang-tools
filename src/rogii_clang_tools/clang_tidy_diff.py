@@ -393,8 +393,22 @@ def main():
         common_clang_tidy_args.append("-warnings-as-errors=" + args.warnings_as_errors)
 
     for name in lines_by_file:
+        # LOCAL PATCH (not upstream). clang-tidy matches the -line-filter "name"
+        # against the file path from compile_commands.json byte-for-byte via
+        # StringRef::ends_with, WITHOUT normalizing the path separator. "git diff"
+        # always emits forward slashes, but a Windows compile_commands.json stores
+        # backslash paths, so a forward-slash-only filter matches nothing and every
+        # changed-line diagnostic is silently suppressed (the hook then exits 0).
+        # Emit the name in both separator styles so whichever matches the database
+        # wins on any platform; the non-matching twin is inert (a real path uses a
+        # single style) and both carry the same line ranges, so there is no
+        # double-report. See https://github.com/llvm/llvm-project/issues/112038
+        forward = name.replace("\\", "/")
+        backward = name.replace("/", "\\")
+        filter_names = [forward] if forward == backward else [forward, backward]
         line_filter_json = json.dumps(
-            [{"name": name, "lines": lines_by_file[name]}], separators=(",", ":")
+            [{"name": n, "lines": lines_by_file[name]} for n in filter_names],
+            separators=(",", ":"),
         )
 
         # Run clang-tidy on files containing changes.
