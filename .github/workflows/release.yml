@@ -1,13 +1,22 @@
 name: release
 
-# Builds the win_amd64 wheel and attaches it to the GitHub Release for a pushed
-# tag (e.g. v22.1.7). Uses the built-in gh CLI + GITHUB_TOKEN — no third-party
-# actions. Delete this workflow if the org restricts Actions and publish the
-# wheel manually (`python -m build --wheel` then upload to the release).
+# Builds the win_amd64 wheel and attaches it to the GitHub Release for a tag.
+# Triggers:
+#   * pushing a tag  v*            -> builds that tag, publishes its release
+#   * "Run workflow" (UI, manual)  -> builds the tag given as input
+# Uses the built-in gh CLI + GITHUB_TOKEN (no third-party actions). Requires
+# Settings -> Actions -> General -> Workflow permissions = "Read and write"
+# (otherwise gh release fails with a 403 auth error).
 
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build and publish (e.g. v22.1.7)"
+        required: true
+        default: "v22.1.7"
 
 permissions:
   contents: write
@@ -17,6 +26,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Manual run: check out the requested tag so the wheel matches it.
+          # Tag push: check out the pushed tag (github.ref).
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
@@ -27,7 +40,8 @@ jobs:
       - name: Publish wheel to release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         shell: bash
         run: |
-          gh release create "${GITHUB_REF_NAME}" dist/*.whl --generate-notes \
-            || gh release upload "${GITHUB_REF_NAME}" dist/*.whl --clobber
+          gh release create "$TAG" dist/*.whl --generate-notes \
+            || gh release upload "$TAG" dist/*.whl --clobber
