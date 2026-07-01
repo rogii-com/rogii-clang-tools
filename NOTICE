@@ -1,0 +1,21 @@
+rogii-clang-tools
+=================
+
+This package redistributes unmodified components of the LLVM Project, licensed
+under the Apache License v2.0 with LLVM Exceptions (see LICENSE).
+
+Bundled artifacts (all from LLVM release 22.1.7):
+
+  bin/clang-apply-replacements.exe
+      Native tool from the official LLVM.org Windows release
+      "clang+llvm-22.1.7-x86_64-pc-windows-msvc".
+
+  src/rogii_clang_tools/run_clang_tidy.py
+      clang-tools-extra/clang-tidy/tool/run-clang-tidy.py at tag llvmorg-22.1.7.
+
+  src/rogii_clang_tools/clang_tidy_diff.py
+      clang-tools-extra/clang-tidy/tool/clang-tidy-diff.py at tag llvmorg-22.1.7.
+
+Local modifications, if any, are recorded in this repository's git history and
+are limited to the *_diff / *_cli glue; the LLVM sources' license headers are
+preserved. The package version mirrors the bundled LLVM release version.

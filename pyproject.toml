@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rogii-clang-tools"
+dynamic = ["version"]
+description = "LLVM helper tools packaged for pip: clang-apply-replacements (binary), run-clang-tidy and clang-tidy-diff (scripts)."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "Apache-2.0 WITH LLVM-exception" }
+authors = [{ name = "Rogii" }]
+keywords = ["clang-tidy", "clang-apply-replacements", "run-clang-tidy", "llvm", "static-analysis"]
+classifiers = [
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
+# Console entry points. clang-apply-replacements is a native binary bundled as
+# package data (src/rogii_clang_tools/_bin) and proxied by a thin shim, because
+# setuptools cannot ship a binary as a plain script.
+[project.scripts]
+run-clang-tidy = "rogii_clang_tools._cli:run_clang_tidy_main"
+clang-tidy-diff = "rogii_clang_tools._cli:clang_tidy_diff_main"
+clang-apply-replacements = "rogii_clang_tools._car:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.dynamic]
+version = { attr = "rogii_clang_tools.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+rogii_clang_tools = ["_bin/*.exe"]

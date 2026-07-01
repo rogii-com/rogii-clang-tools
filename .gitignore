@@ -1,0 +1,9 @@
+# Build artifacts
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyc
+
+# Note: bin/clang-apply-replacements.exe is intentionally tracked (it is the
+# package payload).
